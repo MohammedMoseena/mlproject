@@ -3,6 +3,8 @@ import sys
 from src.exception import CustomException
 from src.logger import logging
 import pandas as pd
+import mysql.connector
+from dotenv import load_dotenv
 
 from sklearn.model_selection import train_test_split
 from dataclasses import dataclass
@@ -20,8 +22,27 @@ class DataIngestion:
     def initiate_data_ingestion(self):
         logging.info("Entered the data ingestion method or component")
         try:
-            #you can get the data from csv,database or API
-            df=pd.read_csv('notebook\data\stud.csv')
+            # you can get the data from csv,database or API
+            # df=pd.read_csv('notebook\data\stud.csv') #If data is in csv format
+            # Connect to the the MYSQL database
+            load_dotenv()
+            mydb=mysql.connector.connect(
+                host = os.environ.get('MYSQL_HOST'),
+                user = os.environ.get('MYSQL_USER'),
+                password = os.environ.get('MYSQL_PASSWORD'),
+                database = os.environ.get('MYSQL_DATABASE')
+            )
+            
+            mycursor = mydb.cursor()
+
+            # Retrieve the data from the database
+            sql = "SELECT * FROM stud"  # Replace with your actual table name
+            mycursor.execute(sql)
+            data = mycursor.fetchall()
+
+            # Create a DataFrame from the fetched data
+            df = pd.DataFrame(data, columns=mycursor.column_names)
+
             logging.info('Read the dataset as dataframe')
 
             os.makedirs(os.path.dirname(self.ingestion_config.train_data_path),exist_ok=True)
